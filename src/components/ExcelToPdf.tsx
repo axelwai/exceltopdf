@@ -3,9 +3,9 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MenuItem, Select, Typography, Box, SelectChangeEvent } from '@mui/material';
-import ConvertToPdfButton from './ConvertToPdfButton';
-import FileUploadButton from './FileUploadButton';
-import PdfUrlPreview from './PdfUrlPreview';
+import ConvertToPdfButton from './ui/ConvertToPdfButton';
+import FileUploadButton from './ui/FileUploadButton';
+import PdfUrlPreview from './ui/PdfUrlPreview';
 
 const readExcelFile = (file: File): Promise<{ sheetNames: string[]; workbook: XLSX.WorkBook }> => {
   return new Promise((resolve, reject) => {

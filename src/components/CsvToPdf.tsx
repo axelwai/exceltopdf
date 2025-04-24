@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Typography, Box } from '@mui/material';
-import ConvertToPdfButton from './ConvertToPdfButton';
-import FileUploadButton from './FileUploadButton';
-import PdfUrlPreview from './PdfUrlPreview';
+import ConvertToPdfButton from './ui/ConvertToPdfButton';
+import FileUploadButton from './ui/FileUploadButton';
+import PdfUrlPreview from './ui/PdfUrlPreview';
 
 const parseCsv = (csv: string): string[][] => {
   return csv

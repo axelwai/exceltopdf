@@ -2,8 +2,8 @@ import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Typography, Box, TextField } from '@mui/material';
-import ConvertToPdfButton from './ConvertToPdfButton';
-import PdfUrlPreview from './PdfUrlPreview';
+import ConvertToPdfButton from './ui/ConvertToPdfButton';
+import PdfUrlPreview from './ui/PdfUrlPreview';
 
 const TableToPdf: React.FC = () => {
   const [html, setHtml] = useState<string>(
