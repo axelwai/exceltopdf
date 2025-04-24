@@ -24,7 +24,6 @@ const generatePdfFromCsv = (data: string[][]): string => {
 
 const CsvToPdf: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [csvData, setCsvData] = useState<string[][] | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,20 +36,17 @@ const CsvToPdf: React.FC = () => {
         const text = evt.target?.result as string;
         const data = parseCsv(text);
         if (data.length === 0) throw new Error('CSV is empty or invalid.');
-        setCsvData(data);
         setError(null);
         // Auto-generate PDF when CSV is loaded
         const url = generatePdfFromCsv(data);
         setPdfUrl(url);
       } catch (err: any) {
         setError('Failed to parse CSV file.');
-        setCsvData(null);
         setPdfUrl(null);
       }
     };
     reader.onerror = () => {
       setError('Error reading the file.');
-      setCsvData(null);
       setPdfUrl(null);
     };
     reader.readAsText(file);
