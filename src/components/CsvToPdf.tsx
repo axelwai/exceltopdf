@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Button, Input, Typography, Box } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import ConvertToPdfButton from './ConvertToPdfButton';
+import FileUploadButton from './FileUploadButton';
+import PdfUrlPreview from './PdfUrlPreview';
 
 const parseCsv = (csv: string): string[][] => {
   return csv
@@ -22,7 +24,7 @@ const generatePdfFromCsv = (data: string[][]): string => {
 };
 
 const CsvToPdf: React.FC = () => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [csvData, setCsvData] = useState<string[][] | null>(null);
@@ -66,20 +68,11 @@ const CsvToPdf: React.FC = () => {
         CSV to PDF Converter
       </Typography>
       <Box mb={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => fileInputRef.current?.click()}
-          style={{ marginBottom: '16px' }}
-        >
-          Upload CSV File
-        </Button>
-        <Input
-          type="file"
+        <FileUploadButton
+          accept=".csv"
+          onFileChange={handleFileUpload}
           inputRef={fileInputRef}
-          onChange={handleFileUpload}
-          inputProps={{ accept: '.csv' }}
-          style={{ display: 'none' }}
+          buttonText="Upload CSV File"
         />
       </Box>
       <ConvertToPdfButton
@@ -87,24 +80,7 @@ const CsvToPdf: React.FC = () => {
         disabled={!csvData}
       />
       {error && <Typography color="error">{error}</Typography>}
-      {pdfUrl && (
-        <Box>
-          <Button
-            variant="outlined"
-            color="primary"
-            href={pdfUrl}
-            download="converted.pdf"
-            style={{ marginBottom: '16px' }}
-          >
-            Download PDF
-          </Button>
-          <iframe
-            src={pdfUrl}
-            title="PDF Preview"
-            style={{ width: '100%', height: '500px', border: 'none' }}
-          />
-        </Box>
-      )}
+      <PdfUrlPreview pdfUrl={pdfUrl} downloadName="converted.pdf" />
     </Box>
   );
 };

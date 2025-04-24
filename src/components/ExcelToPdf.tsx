@@ -2,8 +2,10 @@ import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Button, Input, MenuItem, Select, Typography, Box, SelectChangeEvent } from '@mui/material';
+import { MenuItem, Select, Typography, Box, SelectChangeEvent } from '@mui/material';
 import ConvertToPdfButton from './ConvertToPdfButton';
+import FileUploadButton from './FileUploadButton';
+import PdfUrlPreview from './PdfUrlPreview';
 
 const readExcelFile = (file: File): Promise<{ sheetNames: string[]; workbook: XLSX.WorkBook }> => {
   return new Promise((resolve, reject) => {
@@ -39,7 +41,7 @@ const processSheetToPdfUrl = (workbook: XLSX.WorkBook, sheetName: string): strin
 };
 
 const ExcelToPdf: React.FC = () => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sheetNames, setSheetNames] = useState<string[]>([]);
@@ -94,20 +96,11 @@ const ExcelToPdf: React.FC = () => {
         Excel to PDF Converter
       </Typography>
       <Box mb={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => fileInputRef.current?.click()}
-          style={{ marginBottom: '16px' }}
-        >
-          Upload File
-        </Button>
-        <Input
-          type="file"
+        <FileUploadButton
+          accept=".csv, .xlsx"
+          onFileChange={handleFileUpload}
           inputRef={fileInputRef}
-          onChange={handleFileUpload}
-          inputProps={{ accept: '.csv, .xlsx' }}
-          style={{ display: 'none' }}
+          buttonText="Upload File"
         />
       </Box>
       {sheetNames.length > 0 && (
@@ -131,24 +124,7 @@ const ExcelToPdf: React.FC = () => {
         disabled={!selectedSheet}
       />
       {error && <Typography color="error">{error}</Typography>}
-      {pdfUrl && (
-        <Box>
-          <Button
-            variant="outlined"
-            color="primary"
-            href={pdfUrl}
-            download="converted.pdf"
-            style={{ marginBottom: '16px' }}
-          >
-            Download PDF
-          </Button>
-          <iframe
-            src={pdfUrl}
-            title="PDF Preview"
-            style={{ width: '100%', height: '500px', border: 'none' }}
-          />
-        </Box>
-      )}
+      <PdfUrlPreview pdfUrl={pdfUrl} downloadName="converted.pdf" />
     </Box>
   );
 };

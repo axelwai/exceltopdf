@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Button, Typography, Box, TextField } from '@mui/material';
+import { Typography, Box, TextField } from '@mui/material';
 import ConvertToPdfButton from './ConvertToPdfButton';
+import PdfUrlPreview from './PdfUrlPreview';
 
 const TableToPdf: React.FC = () => {
   const [html, setHtml] = useState<string>(
@@ -99,22 +100,7 @@ const TableToPdf: React.FC = () => {
         </Box>
       )}
       {pdfUrl && (
-        <Box>
-          <Button
-            variant="outlined"
-            color="primary"
-            href={pdfUrl}
-            download="table.pdf"
-            style={{ marginBottom: '16px' }}
-          >
-            Download PDF
-          </Button>
-          <iframe
-            src={pdfUrl}
-            title="PDF Preview"
-            style={{ width: '100%', height: '500px', border: 'none' }}
-          />
-        </Box>
+        <PdfUrlPreview pdfUrl={pdfUrl} downloadName="table.pdf" />
       )}
     </Box>
   );
