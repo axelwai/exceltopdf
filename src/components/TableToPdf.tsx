@@ -33,30 +33,34 @@ const TableToPdf: React.FC = () => {
       </tbody>
     </table>`
   );
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
 
   const handleHtmlChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setHtml(e.target.value);
   };
 
-  const handleConvertToPdf = (): string => {
-    if (!html.trim()) {
-      return '';
-    }
+  const handleConvertClick = () => {
+    setLoading(true);
+    setError(null);
     try {
+      if (!html.trim()) throw new Error('No HTML table provided.');
       const container = document.createElement('div');
       container.innerHTML = html;
       const table = container.querySelector('table');
-      if (!table) {
-        return '';
-      }
+      if (!table) throw new Error('No table found in HTML.');
       const doc = new jsPDF();
       autoTable(doc, { html: table });
       const pdfBlob = doc.output('blob');
       const url = URL.createObjectURL(pdfBlob);
-      return url;
-    } catch (err) {
-      return '';
+      setPdfUrl(url);
+    } catch (err: any) {
+      setError('Failed to convert table to PDF.');
+      setPdfUrl(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,9 +83,13 @@ const TableToPdf: React.FC = () => {
         />
       </Box>
       <PdfConvertAndPreview
-        onConvert={handleConvertToPdf}
-        disabled={!html.trim()}
+        pdfUrl={pdfUrl}
+        label="HTML Table"
+        disabled={!html.trim() || loading}
         downloadName="table.pdf"
+        buttonText={loading ? 'Converting...' : 'Convert to PDF'}
+        onConvertClick={handleConvertClick}
+        error={error}
       />
       {html && (
         <Box mb={2}>

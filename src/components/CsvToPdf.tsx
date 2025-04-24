@@ -25,6 +25,8 @@ const generatePdfFromCsv = (data: string[][]): string => {
 const CsvToPdf: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [csvData, setCsvData] = useState<string[][] | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,23 +38,22 @@ const CsvToPdf: React.FC = () => {
         const data = parseCsv(text);
         if (data.length === 0) throw new Error('CSV is empty or invalid.');
         setCsvData(data);
-        handleConvertToPdf();
-      } catch {
-        console.error('Failed to parse CSV file.');
+        setError(null);
+        // Auto-generate PDF when CSV is loaded
+        const url = generatePdfFromCsv(data);
+        setPdfUrl(url);
+      } catch (err: any) {
+        setError('Failed to parse CSV file.');
+        setCsvData(null);
+        setPdfUrl(null);
       }
     };
-    reader.onerror = () => console.error('Error reading the file.');
+    reader.onerror = () => {
+      setError('Error reading the file.');
+      setCsvData(null);
+      setPdfUrl(null);
+    };
     reader.readAsText(file);
-  };
-
-  const handleConvertToPdf = (): string => {
-    if (!csvData) return '';
-    try {
-      return generatePdfFromCsv(csvData);
-    } catch {
-      console.error('Failed to convert CSV to PDF.');
-      return '';
-    }
   };
 
   return (
@@ -68,11 +69,15 @@ const CsvToPdf: React.FC = () => {
           buttonText="Upload CSV File"
         />
       </Box>
-      <PdfConvertAndPreview
-        onConvert={handleConvertToPdf}
-        disabled={!csvData}
-        downloadName="converted.pdf"
-      />
+      {pdfUrl && (
+        <PdfConvertAndPreview
+          pdfUrl={pdfUrl}
+          label="CSV Data"
+          disabled={false}
+          downloadName="converted.pdf"
+          error={error}
+        />
+      )}
     </Box>
   );
 };

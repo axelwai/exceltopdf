@@ -1,53 +1,41 @@
-import React, { useState } from 'react';
-import { Button, CircularProgress, Box, Typography } from '@mui/material';
+import React from 'react';
+import { Button, Box, Typography } from '@mui/material';
 
 interface PdfConvertAndPreviewProps {
-  onConvert: () => Promise<string> | string;
-  disabled?: boolean;
+  pdfUrl: string | null;
+  label?: string;
   downloadName?: string;
   buttonText?: string;
+  onConvertClick?: () => void;
+  disabled?: boolean;
+  error?: string | null;
 }
 
 const PdfConvertAndPreview: React.FC<PdfConvertAndPreviewProps> = ({
-  onConvert,
-  disabled,
+  pdfUrl,
+  label,
   downloadName = 'converted.pdf',
-  buttonText = 'Convert to PDF',
+  buttonText,
+  onConvertClick,
+  disabled,
+  error,
 }) => {
-  const [loading, setLoading] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleClick = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const url = await onConvert();
-      if (url) {
-        setPdfUrl(url);
-      } else {
-        setPdfUrl(null);
-        setError('No PDF generated.');
-      }
-    } catch (err) {
-      setError('Failed to convert to PDF.');
-      setPdfUrl(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <Box mb={2}>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleClick}
-        disabled={disabled || loading}
-        style={{ marginBottom: '16px' }}
-      >
-        {loading ? <CircularProgress size={24} color="inherit" /> : buttonText}
-      </Button>
+      {label && (
+        <Typography variant="subtitle1" gutterBottom>{label}</Typography>
+      )}
+      {onConvertClick && buttonText && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={onConvertClick}
+          disabled={disabled}
+          style={{ marginBottom: '16px' }}
+        >
+          {buttonText}
+        </Button>
+      )}
       {error && <Typography color="error">{error}</Typography>}
       {pdfUrl && (
         <Box>

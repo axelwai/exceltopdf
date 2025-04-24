@@ -43,40 +43,57 @@ const ExcelToPdf: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [sheetNames, setSheetNames] = useState<string[]>([]);
   const [selectedSheet, setSelectedSheet] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      const { sheetNames } = await readExcelFile(file);
+      const { sheetNames, workbook } = await readExcelFile(file);
       setSheetNames(sheetNames);
 
       if (sheetNames.length === 1) {
         const singleSheet = sheetNames[0];
         setSelectedSheet(singleSheet);
+        // Auto-generate PDF for single sheet
+        const url = processSheetToPdfUrl(workbook, singleSheet);
+        setPdfUrl(url);
+        setError(null);
       } else {
         setSelectedSheet(null);
+        setPdfUrl(null);
       }
     } catch (err) {
-      console.error(err);
+      setError('Failed to read the file. Please upload a valid Excel file.');
+      setSheetNames([]);
+      setSelectedSheet(null);
+      setPdfUrl(null);
     }
   };
 
   const handleSheetChange = (e: SelectChangeEvent<string>) => {
     setSelectedSheet(e.target.value);
+    setPdfUrl(null);
   };
 
-  const handleConvertToPdf = async (): Promise<string> => {
-    if (!selectedSheet) return '';
+  const handleConvertClick = async () => {
+    setLoading(true);
+    setError(null);
     try {
+      if (!selectedSheet) throw new Error('No sheet selected.');
       const file = fileInputRef.current?.files?.[0];
-      if (!file) return '';
+      if (!file) throw new Error('No file uploaded.');
       const { workbook } = await readExcelFile(file);
-      return processSheetToPdfUrl(workbook, selectedSheet);
-    } catch (err) {
-      console.error('Failed to convert the sheet to PDF.');
-      return '';
+      const url = processSheetToPdfUrl(workbook, selectedSheet);
+      setPdfUrl(url);
+    } catch (err: any) {
+      setError(err.message || 'Failed to convert the sheet to PDF.');
+      setPdfUrl(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,7 +110,7 @@ const ExcelToPdf: React.FC = () => {
           buttonText="Upload File"
         />
       </Box>
-      {sheetNames.length > 0 && (
+      {sheetNames.length > 0 && sheetNames.length > 1 && (
         <Box mb={2}>
           <Typography variant="subtitle1">Select Sheet:</Typography>
           <Select
@@ -110,9 +127,13 @@ const ExcelToPdf: React.FC = () => {
         </Box>
       )}
       <PdfConvertAndPreview
-        onConvert={handleConvertToPdf}
-        disabled={!selectedSheet}
+        pdfUrl={pdfUrl}
+        label={selectedSheet ? `Sheet: ${selectedSheet}` : undefined}
+        disabled={sheetNames.length > 1 ? !selectedSheet || loading : false}
         downloadName="converted.pdf"
+        buttonText={sheetNames.length > 1 ? (loading ? 'Converting...' : 'Convert to PDF') : undefined}
+        onConvertClick={sheetNames.length > 1 ? handleConvertClick : undefined}
+        error={error}
       />
     </Box>
   );
