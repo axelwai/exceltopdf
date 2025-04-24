@@ -2,9 +2,8 @@ import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Typography, Box } from '@mui/material';
-import ConvertToPdfButton from './ui/ConvertToPdfButton';
 import FileUploadButton from './ui/FileUploadButton';
-import PdfUrlPreview from './ui/PdfUrlPreview';
+import PdfConvertAndPreview from './ui/PdfConvertAndPreview';
 
 const parseCsv = (csv: string): string[][] => {
   return csv
@@ -25,8 +24,6 @@ const generatePdfFromCsv = (data: string[][]): string => {
 
 const CsvToPdf: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [csvData, setCsvData] = useState<string[][] | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,25 +36,21 @@ const CsvToPdf: React.FC = () => {
         const data = parseCsv(text);
         if (data.length === 0) throw new Error('CSV is empty or invalid.');
         setCsvData(data);
-        setPdfUrl(generatePdfFromCsv(data));
-        setError(null);
-      } catch (err) {
-        setError('Failed to parse CSV file.');
+        handleConvertToPdf();
+      } catch {
+        console.error('Failed to parse CSV file.');
       }
     };
-    reader.onerror = () => setError('Error reading the file.');
+    reader.onerror = () => console.error('Error reading the file.');
     reader.readAsText(file);
   };
 
   const handleConvertToPdf = (): string => {
     if (!csvData) return '';
     try {
-      const url = generatePdfFromCsv(csvData);
-      setPdfUrl(url);
-      setError(null);
-      return url;
+      return generatePdfFromCsv(csvData);
     } catch {
-      setError('Failed to convert CSV to PDF.');
+      console.error('Failed to convert CSV to PDF.');
       return '';
     }
   };
@@ -75,12 +68,11 @@ const CsvToPdf: React.FC = () => {
           buttonText="Upload CSV File"
         />
       </Box>
-      <ConvertToPdfButton
+      <PdfConvertAndPreview
         onConvert={handleConvertToPdf}
         disabled={!csvData}
+        downloadName="converted.pdf"
       />
-      {error && <Typography color="error">{error}</Typography>}
-      <PdfUrlPreview pdfUrl={pdfUrl} downloadName="converted.pdf" />
     </Box>
   );
 };

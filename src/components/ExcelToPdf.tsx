@@ -3,9 +3,8 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MenuItem, Select, Typography, Box, SelectChangeEvent } from '@mui/material';
-import ConvertToPdfButton from './ui/ConvertToPdfButton';
 import FileUploadButton from './ui/FileUploadButton';
-import PdfUrlPreview from './ui/PdfUrlPreview';
+import PdfConvertAndPreview from './ui/PdfConvertAndPreview';
 
 const readExcelFile = (file: File): Promise<{ sheetNames: string[]; workbook: XLSX.WorkBook }> => {
   return new Promise((resolve, reject) => {
@@ -42,8 +41,6 @@ const processSheetToPdfUrl = (workbook: XLSX.WorkBook, sheetName: string): strin
 
 const ExcelToPdf: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [sheetNames, setSheetNames] = useState<string[]>([]);
   const [selectedSheet, setSelectedSheet] = useState<string | null>(null);
 
@@ -52,21 +49,17 @@ const ExcelToPdf: React.FC = () => {
     if (!file) return;
 
     try {
-      const { sheetNames, workbook } = await readExcelFile(file);
+      const { sheetNames } = await readExcelFile(file);
       setSheetNames(sheetNames);
 
       if (sheetNames.length === 1) {
         const singleSheet = sheetNames[0];
         setSelectedSheet(singleSheet);
-        const pdfUrl = processSheetToPdfUrl(workbook, singleSheet);
-        setPdfUrl(pdfUrl);
       } else {
         setSelectedSheet(null);
       }
-
-      setError(null);
     } catch (err) {
-      setError(err as string);
+      console.error(err);
     }
   };
 
@@ -80,12 +73,9 @@ const ExcelToPdf: React.FC = () => {
       const file = fileInputRef.current?.files?.[0];
       if (!file) return '';
       const { workbook } = await readExcelFile(file);
-      const pdfUrl = processSheetToPdfUrl(workbook, selectedSheet);
-      setPdfUrl(pdfUrl);
-      setError(null);
-      return pdfUrl;
+      return processSheetToPdfUrl(workbook, selectedSheet);
     } catch (err) {
-      setError('Failed to convert the sheet to PDF.');
+      console.error('Failed to convert the sheet to PDF.');
       return '';
     }
   };
@@ -119,12 +109,11 @@ const ExcelToPdf: React.FC = () => {
           </Select>
         </Box>
       )}
-      <ConvertToPdfButton
+      <PdfConvertAndPreview
         onConvert={handleConvertToPdf}
         disabled={!selectedSheet}
+        downloadName="converted.pdf"
       />
-      {error && <Typography color="error">{error}</Typography>}
-      <PdfUrlPreview pdfUrl={pdfUrl} downloadName="converted.pdf" />
     </Box>
   );
 };
