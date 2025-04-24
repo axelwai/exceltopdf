@@ -1,8 +1,6 @@
 import React, { useRef, useState } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { Typography, Box, TextField } from '@mui/material';
-import PdfConvertAndPreview from './ui/PdfConvertAndPreview';
+import PdfPreview from './ui/PdfPreview';
 
 const TableToPdf: React.FC = () => {
   const [html, setHtml] = useState<string>(
@@ -33,36 +31,22 @@ const TableToPdf: React.FC = () => {
       </tbody>
     </table>`
   );
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const handleHtmlChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setHtml(e.target.value);
-  };
-
-  const handleConvertClick = () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (!html.trim()) throw new Error('No HTML table provided.');
+  let tableOptions = null;
+  try {
+    if (html.trim()) {
       const container = document.createElement('div');
       container.innerHTML = html;
       const table = container.querySelector('table');
       if (!table) throw new Error('No table found in HTML.');
-      const doc = new jsPDF();
-      autoTable(doc, { html: table });
-      const pdfBlob = doc.output('blob');
-      const url = URL.createObjectURL(pdfBlob);
-      setPdfUrl(url);
-    } catch (err: any) {
-      setError('Failed to convert table to PDF.');
-      setPdfUrl(null);
-    } finally {
-      setLoading(false);
+      tableOptions = { html: table };
     }
-  };
+  } catch (err: any) {
+    setError('Failed to parse HTML table.');
+    tableOptions = null;
+  }
 
   return (
     <Box p={4}>
@@ -76,19 +60,15 @@ const TableToPdf: React.FC = () => {
           minRows={6}
           maxRows={16}
           value={html}
-          onChange={handleHtmlChange}
+          onChange={e => setHtml(e.target.value)}
           fullWidth
           variant="outlined"
           placeholder="&lt;table&gt;...&lt;/table&gt;"
         />
       </Box>
-      <PdfConvertAndPreview
-        pdfUrl={pdfUrl}
-        label="HTML Table"
-        disabled={!html.trim() || loading}
+      <PdfPreview
+        tableOptions={tableOptions}
         downloadName="table.pdf"
-        buttonText={loading ? 'Converting...' : 'Convert to PDF'}
-        onConvertClick={handleConvertClick}
         error={error}
       />
       {html && (
