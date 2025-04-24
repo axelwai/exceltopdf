@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Container, Typography, Box, Tabs, Tab } from '@mui/material';
-import ExcelToPdf from './ExcelToPdf';
-import CsvToPdf from './CsvToPdf';
-import TableToPdf from './TableToPdf';
+import ExcelToPdf from './components/ExcelToPdf';
+import CsvToPdf from './components/CsvToPdf';
+import TableToPdf from './components/TableToPdf';
 
 function App() {
   const [tab, setTab] = useState(0);
