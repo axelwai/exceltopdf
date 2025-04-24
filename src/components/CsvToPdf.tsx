@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Button, Input, Typography, Box } from '@mui/material';
+import ConvertToPdfButton from './ConvertToPdfButton';
 
 const parseCsv = (csv: string): string[][] => {
   return csv
@@ -46,13 +47,16 @@ const CsvToPdf: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const handleConvertToPdf = () => {
-    if (!csvData) return;
+  const handleConvertToPdf = (): string => {
+    if (!csvData) return '';
     try {
-      setPdfUrl(generatePdfFromCsv(csvData));
+      const url = generatePdfFromCsv(csvData);
+      setPdfUrl(url);
       setError(null);
+      return url;
     } catch {
       setError('Failed to convert CSV to PDF.');
+      return '';
     }
   };
 
@@ -78,15 +82,10 @@ const CsvToPdf: React.FC = () => {
           style={{ display: 'none' }}
         />
       </Box>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleConvertToPdf}
-        style={{ marginBottom: '16px' }}
+      <ConvertToPdfButton
+        onConvert={handleConvertToPdf}
         disabled={!csvData}
-      >
-        Convert to PDF
-      </Button>
+      />
       {error && <Typography color="error">{error}</Typography>}
       {pdfUrl && (
         <Box>

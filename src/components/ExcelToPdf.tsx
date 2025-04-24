@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Button, Input, MenuItem, Select, Typography, Box, SelectChangeEvent } from '@mui/material';
+import ConvertToPdfButton from './ConvertToPdfButton';
 
 const readExcelFile = (file: File): Promise<{ sheetNames: string[]; workbook: XLSX.WorkBook }> => {
   return new Promise((resolve, reject) => {
@@ -71,19 +72,19 @@ const ExcelToPdf: React.FC = () => {
     setSelectedSheet(e.target.value);
   };
 
-  const handleConvertToPdf = async () => {
-    if (!selectedSheet) return;
-
+  const handleConvertToPdf = async (): Promise<string> => {
+    if (!selectedSheet) return '';
     try {
       const file = fileInputRef.current?.files?.[0];
-      if (!file) return;
-
+      if (!file) return '';
       const { workbook } = await readExcelFile(file);
       const pdfUrl = processSheetToPdfUrl(workbook, selectedSheet);
       setPdfUrl(pdfUrl);
       setError(null);
+      return pdfUrl;
     } catch (err) {
       setError('Failed to convert the sheet to PDF.');
+      return '';
     }
   };
 
@@ -125,14 +126,10 @@ const ExcelToPdf: React.FC = () => {
           </Select>
         </Box>
       )}
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleConvertToPdf}
-        style={{ marginBottom: '16px' }}
-      >
-        Convert to PDF
-      </Button>
+      <ConvertToPdfButton
+        onConvert={handleConvertToPdf}
+        disabled={!selectedSheet}
+      />
       {error && <Typography color="error">{error}</Typography>}
       {pdfUrl && (
         <Box>

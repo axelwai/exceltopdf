@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Button, Typography, Box, TextField } from '@mui/material';
+import ConvertToPdfButton from './ConvertToPdfButton';
 
 const TableToPdf: React.FC = () => {
   const [html, setHtml] = useState<string>(
@@ -42,27 +43,29 @@ const TableToPdf: React.FC = () => {
     setPdfUrl(null);
   };
 
-  const handleConvertToPdf = () => {
+  const handleConvertToPdf = (): string => {
     if (!html.trim()) {
       setError('Please paste a valid HTML table.');
-      return;
+      return '';
     }
     try {
-      // Render the HTML into a hidden div to extract the table
       const container = document.createElement('div');
       container.innerHTML = html;
       const table = container.querySelector('table');
       if (!table) {
         setError('No <table> element found in the provided HTML.');
-        return;
+        return '';
       }
       const doc = new jsPDF();
       autoTable(doc, { html: table });
       const pdfBlob = doc.output('blob');
-      setPdfUrl(URL.createObjectURL(pdfBlob));
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
       setError(null);
+      return url;
     } catch (err) {
       setError('Failed to convert table to PDF.');
+      return '';
     }
   };
 
@@ -84,14 +87,10 @@ const TableToPdf: React.FC = () => {
           placeholder="&lt;table&gt;...&lt;/table&gt;"
         />
       </Box>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleConvertToPdf}
-        style={{ marginBottom: '16px' }}
-      >
-        Convert to PDF
-      </Button>
+      <ConvertToPdfButton
+        onConvert={handleConvertToPdf}
+        disabled={!html.trim()}
+      />
       {error && <Typography color="error">{error}</Typography>}
       {html && (
         <Box mb={2}>
